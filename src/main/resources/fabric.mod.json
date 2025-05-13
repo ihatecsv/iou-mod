@@ -1,0 +1,35 @@
+{
+	"schemaVersion": 1,
+	"id": "iou",
+	"version": "${version}",
+	"name": "IOU",
+	"description": "Give IOUs to your friends to remind them you need to pay them back!",
+	"authors": [
+		"ihatecsv"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/project/iou",
+		"sources": "https://github.com/ihatecsv/iou-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/iou/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.ihatecsv.Iou"
+		],
+		"client": [
+			"com.ihatecsv.IouClient"
+		]
+	},
+	"mixins": [],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
