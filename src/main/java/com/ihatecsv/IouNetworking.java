@@ -70,7 +70,6 @@ public final class IouNetworking {
                 dir.y * velocity + 0.1F,
                 dir.z * velocity);
 
-        entity.setOwner(player.getUuid());
         entity.setThrower(player.getUuid());
         entity.setToDefaultPickupDelay();
 
