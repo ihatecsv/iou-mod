@@ -49,6 +49,20 @@ public final class IouItemRenderer implements BuiltinItemRendererRegistry.Dynami
                         false
                 )
         );
+        CONFIG.put(ModelTransformationMode.THIRD_PERSON_LEFT_HAND,
+                new ModeConfig(
+                        new TransformData(new Vector3f(0.5f, 0.5f, 0.5f), new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f)),
+                        new TransformData(new Vector3f(0.5f, 0.5f, 0.15f), new Vector3f(0f, 0f, 0f), new Vector3f(0.4f, 0.4f, 0.4f)),
+                        false
+                )
+        );
+        CONFIG.put(ModelTransformationMode.THIRD_PERSON_RIGHT_HAND,
+                new ModeConfig(
+                        new TransformData(new Vector3f(0.5f, 0.5f, 0.5f), new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f)),
+                        new TransformData(new Vector3f(0.5f, 0.5f, 0.15f), new Vector3f(0f, 0f, 0f), new Vector3f(0.4f, 0.4f, 0.4f)),
+                        false
+                )
+        );
         CONFIG.put(ModelTransformationMode.GROUND,
                 new ModeConfig(
                         new TransformData(new Vector3f(0.5f, 0.5f, 0.5f), new Vector3f(0f, 0f, 0f), new Vector3f(1f, 1f, 1f)),
