@@ -1,45 +1,41 @@
-package com.ihatecsv;
+package com.ihatecsv.iou.networking;
 
+import com.ihatecsv.iou.IOU;
+import com.ihatecsv.iou.IOUComponents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public final class IouNetworking {
-    public static final Identifier DROP_PACKET = new Identifier(Iou.MOD_ID, "drop_iou");
-
+public final class IOUNetworkServer {
     private static final long COOLDOWN_TICKS = 40L;
 
     private static final Map<UUID, Map<String, Long>> LAST_DROP = new ConcurrentHashMap<>();
 
     public static void registerServerReceiver() {
         ServerPlayNetworking.registerGlobalReceiver(
-                DROP_PACKET,
-                (server, player, handler, buf, responseSender) -> {
-                    boolean strict = buf.readBoolean();
-                    server.execute(() -> handleDrop(player, strict));
-                }
+                IOUDropPayload.ID,
+                (payload, context) -> handleDrop(context.player(), payload.strict())
         );
     }
 
     private static void handleDrop(ServerPlayerEntity player, boolean strict) {
         ItemStack held = player.getMainHandStack();
 
-        if (held.isEmpty() || held.getItem() == Iou.IOU_ITEM) {
+        if (held.isEmpty() || held.getItem() == IOU.IOU_ITEM) {
             return;
         }
 
         long now = player.getWorld().getTime();
-        String sig = stackSignature(held, strict);
+        String sig = stackSignature(held, strict, player);
 
         Map<String, Long> byStack = LAST_DROP.computeIfAbsent(
                 player.getUuid(), id -> new ConcurrentHashMap<>());
@@ -50,11 +46,10 @@ public final class IouNetworking {
         }
         byStack.put(sig, now);
 
-        ItemStack iou = new ItemStack(Iou.IOU_ITEM, held.getCount());
-        NbtCompound tag = iou.getOrCreateNbt();
-        tag.put("original_nbt", held.writeNbt(new NbtCompound()));
-        tag.putString("owed_by", player.getName().getString());
-        tag.putBoolean("strict", strict);
+        ItemStack iou = new ItemStack(IOU.IOU_ITEM, held.getCount());
+        iou.set(IOUComponents.ORIGINAL_STACK, held.copy());
+        iou.set(IOUComponents.OWED_BY, player.getName().getString());
+        iou.set(IOUComponents.STRICT, strict);
 
         World world = player.getWorld();
         Vec3d dir = player.getRotationVec(1.0F);
@@ -70,22 +65,22 @@ public final class IouNetworking {
                 dir.y * velocity + 0.1F,
                 dir.z * velocity);
 
-        entity.setThrower(player.getUuid());
+        entity.setThrower(player);
         entity.setToDefaultPickupDelay();
 
         world.spawnEntity(entity);
 
-        Iou.LOGGER.debug("Created {} IOU for {} ({}× {})",
+        IOU.LOGGER.debug("Created {} IOU for {} ({}× {})",
                 strict ? "strict" : "lenient",
                 player.getName().getString(),
                 held.getCount(),
                 Registries.ITEM.getId(held.getItem()));
     }
 
-    private static String stackSignature(ItemStack stack, boolean strict) {
+    private static String stackSignature(ItemStack stack, boolean strict, ServerPlayerEntity player) {
         if (strict) {
-            NbtCompound nbt = stack.writeNbt(new NbtCompound());
-            return Registries.ITEM.getId(stack.getItem()) + "|" + nbt.toString();
+            return Registries.ITEM.getId(stack.getItem()) + "|" +
+                    stack.encode(Objects.requireNonNull(player.getServer()).getRegistryManager()).toString();
         }
         return Registries.ITEM.getId(stack.getItem()) + "|" + stack.getCount();
     }
